@@ -4,7 +4,7 @@
 
 **[Live demo](https://multilingual-support-copilot.vercel.app)**
 
-Privacy-safe public issue triage portfolio project built with Next.js and TypeScript.
+Privacy-safe public issue triage system built with Next.js and TypeScript.
 
 It demonstrates transparent source ingestion, deterministic intent routing and honest provider boundaries for a multilingual support workflow.
 
@@ -24,7 +24,7 @@ npm run dev
 
 ## 中文
 
-这是一个真实公开 Issue 分流作品集。数据来自 GitHub 官方 API，每条记录保留原始链接。公开版没有 Gmail 和 LLM 授权，因此会明确显示未连接，不会虚构邮件、中文翻译、知识库引用或回复结果。
+这是一个真实公开 Issue 分流系统。数据来自 GitHub 官方 API，每条记录保留原始链接。公开版没有 Gmail 和 LLM 授权，因此会明确显示未连接，不会虚构邮件、中文翻译、知识库引用或回复结果。
 
 ## Quality checks
 
