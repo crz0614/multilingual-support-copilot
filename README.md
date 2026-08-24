@@ -21,14 +21,15 @@ npm run dev
 
 - `GET /api/inbox` returns normalized live public GitHub issues plus per-source health.
 - `PUT /api/tickets/:id/status` persists `inbox`, `assigned`, or `resolved` state on the server.
+- `POST /api/webhooks/github` accepts signed GitHub `issues` events, deduplicates deliveries, updates snapshots, and marks closed issues inactive.
 - `GET /api/health` verifies SQLite and reports whether the current deployment has durable storage.
 - `POST /api/draft` returns `503 llm_not_configured`; it never fabricates a reply.
 
-For a persistent single-operator deployment, run `docker compose up --build`. The named volume preserves issue snapshots and workflow state across container restarts, and `/api/health` is used by Compose monitoring. Put the service behind your own authentication proxy before exposing write APIs publicly. The Vercel URL remains a read-only-style preview with ephemeral `/tmp` storage; it is not advertised as durable.
+For a persistent single-operator deployment, set a strong `GITHUB_WEBHOOK_SECRET` and run `docker compose up --build`. Configure the repository webhook URL as `https://your-host/api/webhooks/github`, use the same secret, select `application/json`, and subscribe to Issues events. The endpoint verifies GitHub's `X-Hub-Signature-256`, rejects unsigned payloads and stores each `X-GitHub-Delivery` only once. The named volume preserves issue snapshots, webhook receipts and workflow state across container restarts, and `/api/health` is used by Compose monitoring. Put the service behind your own authentication proxy before exposing other write APIs publicly. The Vercel URL remains a read-only-style preview with ephemeral `/tmp` storage; it is not advertised as durable.
 
 ## 中文
 
-这是一个真实公开 Issue 分流系统。数据来自 GitHub 官方 API，每条记录保留原始链接。使用 `docker compose up --build` 自托管时，Issue 快照以及“待处理／已分配／已解决”状态会保存在服务器 SQLite 数据卷中，容器重启后仍然存在。Vercel 公开地址仅为临时存储预览，不宣称持久化。公开版没有 Gmail 和 LLM 授权，因此会明确显示未连接，不会虚构邮件、中文翻译、知识库引用或回复结果。
+这是一个真实公开 Issue 分流系统。数据来自 GitHub 官方 API，每条记录保留原始链接。配置 `GITHUB_WEBHOOK_SECRET` 后，GitHub Issues Webhook 会经过 HMAC-SHA256 签名校验、按 delivery ID 去重并实时更新快照；关闭的 Issue 会标记为 inactive。使用 `docker compose up --build` 自托管时，Issue 快照、Webhook 收据以及“待处理／已分配／已解决”状态会保存在服务器 SQLite 数据卷中，容器重启后仍然存在。Vercel 公开地址仅为临时存储预览，不宣称持久化。公开版没有 Gmail 和 LLM 授权，因此会明确显示未连接，不会虚构邮件、中文翻译、知识库引用或回复结果。
 
 ## Quality checks
 
