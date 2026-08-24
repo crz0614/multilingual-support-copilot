@@ -6,7 +6,7 @@
 
 Privacy-safe public issue triage system built with Next.js and TypeScript.
 
-It demonstrates transparent source ingestion, deterministic intent routing and honest provider boundaries for a multilingual support workflow.
+It provides transparent source ingestion, deterministic intent routing, durable triage state for self-hosted deployments, and honest provider boundaries for a multilingual support workflow.
 
 The deployment reads current public issues from the official GitHub API and preserves an original-source link for every record. It does not pretend to be connected to Gmail or an LLM: translation and reply generation remain explicitly unavailable until real providers are configured.
 
@@ -20,11 +20,15 @@ npm run dev
 ## API
 
 - `GET /api/inbox` returns normalized live public GitHub issues plus per-source health.
+- `PUT /api/tickets/:id/status` persists `inbox`, `assigned`, or `resolved` state on the server.
+- `GET /api/health` verifies SQLite and reports whether the current deployment has durable storage.
 - `POST /api/draft` returns `503 llm_not_configured`; it never fabricates a reply.
+
+For a persistent single-operator deployment, run `docker compose up --build`. The named volume preserves issue snapshots and workflow state across container restarts, and `/api/health` is used by Compose monitoring. Put the service behind your own authentication proxy before exposing write APIs publicly. The Vercel URL remains a read-only-style preview with ephemeral `/tmp` storage; it is not advertised as durable.
 
 ## 中文
 
-这是一个真实公开 Issue 分流系统。数据来自 GitHub 官方 API，每条记录保留原始链接。公开版没有 Gmail 和 LLM 授权，因此会明确显示未连接，不会虚构邮件、中文翻译、知识库引用或回复结果。
+这是一个真实公开 Issue 分流系统。数据来自 GitHub 官方 API，每条记录保留原始链接。使用 `docker compose up --build` 自托管时，Issue 快照以及“待处理／已分配／已解决”状态会保存在服务器 SQLite 数据卷中，容器重启后仍然存在。Vercel 公开地址仅为临时存储预览，不宣称持久化。公开版没有 Gmail 和 LLM 授权，因此会明确显示未连接，不会虚构邮件、中文翻译、知识库引用或回复结果。
 
 ## Quality checks
 
