@@ -4,6 +4,7 @@ services:
     environment:
       DATABASE_FILE: /app/.data/support-copilot.db
       GITHUB_WEBHOOK_SECRET: ${GITHUB_WEBHOOK_SECRET:-}
+      OPERATOR_TOKEN: ${OPERATOR_TOKEN:-}
     ports: ["3000:3000"]
     volumes: [support_data:/app/.data]
     healthcheck:

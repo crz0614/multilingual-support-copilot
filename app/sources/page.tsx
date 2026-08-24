@@ -7,6 +7,8 @@ import styles from "./sources.module.css";
 export default function SourcesPage() {
   const [repos, setRepos] = useState<string[]>([]);
   const [input, setInput] = useState("");
+  const [token, setToken] = useState("");
+  const [authConfigured, setAuthConfigured] = useState(false);
   const [notice, setNotice] = useState("Loading…");
 
   const load = async () => {
@@ -15,7 +17,9 @@ export default function SourcesPage() {
       setNotice(`Load failed: HTTP ${response.status}`);
       return;
     }
-    setRepos((await response.json()).repositories);
+    const result = await response.json();
+    setRepos(result.repositories);
+    setAuthConfigured(result.operatorAuthConfigured);
     setNotice("");
   };
 
@@ -28,7 +32,7 @@ export default function SourcesPage() {
     setNotice("");
     const response = await fetch("/api/repositories", {
       method,
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json", authorization: `Bearer ${token}` },
       body: JSON.stringify({ fullName }),
     });
     const result = await response.json();
@@ -46,5 +50,6 @@ export default function SourcesPage() {
     if (input.trim()) void change("POST", input.trim());
   };
 
-  return <main className={styles.page}><section><header><div><small>PERSISTED SOURCE CONFIGURATION</small><h1>Monitored GitHub repositories</h1><p>Only repositories verified through the GitHub API are saved. Changes immediately affect Inbox synchronization.</p></div><Link href="/">← Back to inbox</Link></header><form onSubmit={submit}><input value={input} onChange={event => setInput(event.target.value)} placeholder="owner/repository" aria-label="Repository full name"/><button type="submit">Verify and add</button></form><div className={styles.list}>{repos.map(repo => <article key={repo}><div><b>{repo}</b><small>Verified public GitHub source</small></div><button onClick={() => void change("DELETE", repo)}>Remove</button></article>)}</div>{notice && <p className={styles.notice}>{notice}</p>}</section></main>;
+  const writable = authConfigured && Boolean(token);
+  return <main className={styles.page}><section><header><div><small>PERSISTED SOURCE CONFIGURATION</small><h1>Monitored GitHub repositories</h1><p>Only repositories verified through the GitHub API are saved. Changes immediately affect Inbox synchronization.</p></div><Link href="/">← Back to inbox</Link></header>{authConfigured?<label className={styles.token}>Operator token<input type="password" value={token} onChange={event=>setToken(event.target.value)} autoComplete="off" placeholder="Required for changes"/></label>:<p className={styles.readonly}>Read-only mode: configure <code>OPERATOR_TOKEN</code> on the server to enable changes.</p>}<form onSubmit={submit}><input value={input} onChange={event => setInput(event.target.value)} placeholder="owner/repository" aria-label="Repository full name"/><button type="submit" disabled={!writable}>Verify and add</button></form><div className={styles.list}>{repos.map(repo => <article key={repo}><div><b>{repo}</b><small>Verified public GitHub source</small></div><button disabled={!writable} onClick={() => void change("DELETE", repo)}>Remove</button></article>)}</div>{notice && <p className={styles.notice}>{notice}</p>}</section></main>;
 }
